@@ -1,5 +1,6 @@
 # Test The App
 See this link [https://inspiring-bhabha-98fd57.netlify.app/](https://inspiring-bhabha-98fd57.netlify.app/)
+for more about netlify, visit this link [https://app.netlify.com](https://inspiring-bhabha-98fd57.netlify.app/)
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
