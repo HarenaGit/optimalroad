@@ -1,3 +1,8 @@
+# About The App
+This app is a simulation of an optimal road computing from one point to another.
+The first point you create is defined as the initial point of the road searching, and the last point is considered as the final point.
+At the top-left of the app will be all tools you need to simulate the [Demouchron] algorithm to look for [min] and [max] road.
+
 # Test The App
 See this link [https://inspiring-bhabha-98fd57.netlify.app/](https://inspiring-bhabha-98fd57.netlify.app/)
 for more about netlify, visit this link [https://app.netlify.com](https://inspiring-bhabha-98fd57.netlify.app/)
