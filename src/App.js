@@ -64,7 +64,7 @@ function App(){
       trackerLine = false
       newLine = null
       if(currentTool == Tools.line && trackerEndLineDraw){
-        summits.forEach((summit) => {
+         summits.forEach((summit) => {
           const clientX =  currentLineCoordinate[0][0]
           const clientY = currentLineCoordinate[0][1]
           if(summit.summitClick(clientX, clientY)){ 
@@ -84,12 +84,16 @@ function App(){
               ok = true
             }
         })
+        if(currentLineCoordinate[0][0] == currentLineCoordinate[1][0] && currentLineCoordinate[0][1] == currentLineCoordinate[1][1]) return;
+      
         resetColor()
         if(ok){
           let value =  prompt("Veuiller saisir la distance entre " + "X"+ currentLineCoordinate[0][3] + " et " + "X" + currentLineCoordinate[1][3])
-          if(value !== null){
-                setLines([ ...lines, new Line(currentLineCoordinate[0][0], currentLineCoordinate[0][1], currentLineCoordinate[1][0], currentLineCoordinate[1][1], parseInt(value),  currentLineCoordinate[0][3], currentLineCoordinate[1][3], CIRCLE_RADIUS)])
-          }       
+          
+          if(!isNaN(parseInt(value))){
+            setLines([ ...lines, new Line(currentLineCoordinate[0][0], currentLineCoordinate[0][1], currentLineCoordinate[1][0], currentLineCoordinate[1][1], parseInt(value),  currentLineCoordinate[0][3], currentLineCoordinate[1][3], CIRCLE_RADIUS)])
+          } 
+            
         }
         else setLineCoordinate([])
        
