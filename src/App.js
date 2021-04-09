@@ -84,7 +84,7 @@ function App(){
               ok = true
             }
         })
-        
+        resetColor()
         if(ok){
           let value =  prompt("Veuiller saisir la distance entre " + "X"+ currentLineCoordinate[0][3] + " et " + "X" + currentLineCoordinate[1][3])
           if(value !== null){
@@ -165,43 +165,13 @@ function App(){
     setSummits([...summits, new Summit(index, x, y, CIRCLE_RADIUS, "X" + index)])
     return
   }
-  const lineFunctionnality = (event) => {
-    resetColor()
-         summits.forEach((summit) => {
-            const rect = canvasRef.current.getBoundingClientRect();
-          
-              const clientX =  event.clientX - rect.left
-              const clientY = event.clientY - rect.top
-              if(summit.summitClick(clientX, clientY)){   
-                  let x = summit.getX();
-                  let y = summit.getY(); 
-                  let coord = lineCoordinate;
-                  coord.push([x, y, summit.getIndex()])
-                  setLineCoordinate(coord) 
-                  
-              }
-          })
-          
-          
-          if(lineCoordinate.length == 2){
-            let value =  prompt("Veuiller saisir la distance entre " + "X"+ lineCoordinate[0][2] + " et " + "X" + lineCoordinate[1][2])
-            if(value !== null){
-              setLines([ ...lines, new Line(lineCoordinate[0][0], lineCoordinate[0][1], lineCoordinate[1][0], lineCoordinate[1][1], parseInt(value),  lineCoordinate[0][2], lineCoordinate[1][2], CIRCLE_RADIUS)])
-            }
-             setLineCoordinate([])
-          }
-      return
-  }
+ 
   const handleCanvasClick =  (event) => {
     
       if(currentTool == Tools.summit){
          summitFunctionnality(event)
       }
-      if(currentTool == Tools.line){
-       // lineFunctionnality(event)
-
-       return
-      }
+     
 
   } 
 
