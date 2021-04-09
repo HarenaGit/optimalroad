@@ -169,11 +169,18 @@ function App(){
     setSummits([...summits, new Summit(index, x, y, CIRCLE_RADIUS, "X" + index)])
     return
   }
+
+  const selectFunctionnality = (event) => {
+
+  }
  
   const handleCanvasClick =  (event) => {
     
       if(currentTool == Tools.summit){
          summitFunctionnality(event)
+      }
+      if(currentTool == Tools.select){
+        selectFunctionnality(event)
       }
      
 
