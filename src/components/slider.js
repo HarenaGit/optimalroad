@@ -3,7 +3,8 @@ import Paper from '@material-ui/core/Paper';
 import Slide from '@material-ui/core/Slide';
 import { makeStyles } from '@material-ui/core/styles';
 import {Color} from '../canvas_components/utilities/color'
-import IconPoint from '@material-ui/icons/Details'
+import IconPoint from '@material-ui/icons/ChevronLeft'
+import IconPointRight from '@material-ui/icons/ChevronRight'
 import IconButton from '@material-ui/core/IconButton'
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -30,6 +31,22 @@ export default function SimpleSlide(props) {
     setChecked((prev) => !prev);
   };
 
+  const handleIconChange = () => {
+     if(active == Color.whiteColor){
+       return(
+          <>
+            <IconPoint />
+          </>
+       );
+     }
+     else{
+      return(
+        <>
+          <IconPointRight />
+        </>
+     );
+     }
+  }
   return (
     <div className={classes.root}>
       <Paper elevation={1} style={{backgroundColor:' rgba(255,255,255, 0.1)', position:'relative', right: 50, width: 50, height: 50}}  className={classes.paper}>     
@@ -51,7 +68,7 @@ export default function SimpleSlide(props) {
             color: active    
         }} 
        >
-       <IconPoint />
+       {handleIconChange()}
    </IconButton>           
 
       </Paper>

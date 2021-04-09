@@ -7,7 +7,7 @@ import IconButton from '@material-ui/core/IconButton'
 import Delete from '@material-ui/icons/DeleteForever'
 import Arrow from '@material-ui/icons/ArrowRightAlt'
 import Circle from '@material-ui/icons/Adjust'
-import Selection from '@material-ui/icons/SelectAllOutlined'
+import Selection from '@material-ui/icons/TouchApp'
 import {Color} from '../canvas_components/utilities/color'
 
 const useStyles = makeStyles((theme) => ({
