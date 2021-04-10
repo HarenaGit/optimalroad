@@ -30,7 +30,12 @@ export class Line{
     setYEnd(y){
         this.y_end = y/this.SCALE - this.OFFSET
     }
-    
+    setIndexBegin(idxBg){
+        this.index_begin = idxBg
+    }
+    setIndexEnd(idxEnd){
+        this.index_end = idxEnd
+    }
     draw(ctx){
         this.ctx = ctx;
 

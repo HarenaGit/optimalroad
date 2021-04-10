@@ -19,8 +19,8 @@ import backgroundImage from './images/vector-dark.jpg'
 import {CircleRadius} from './canvas_components/utilities/circleRadius'
 import {Color} from './canvas_components/utilities/color'
 import Slide from './components/slider'
- 
-
+import DeleteIcon from '@material-ui/icons/Delete';
+import IconButton from '@material-ui/core/IconButton'
 
 const CIRCLE_RADIUS = CircleRadius;
 const infinie = '∞';
@@ -35,6 +35,8 @@ function App(){
   let   [currentResult, setCurrentResult] = useState([])
   let [summits, setSummits,lines, setLines, draggableLine, setDraggableLine, canvasRef, canvasWidth, canvasHeight] = useCanvas();
   const  [lineCoordinate, setLineCoordinate] = useState([])
+  const [selectedSummit, setSelectedSummit] = useState()
+
   
   let paintDraggableLine = false
   let currentLineCoordinate = []
@@ -42,17 +44,7 @@ function App(){
   let trackerEndLineDraw = false
   let newLine = null
 
-  const summitFunctionnality = (event) => {
-    resetColor()
-         
-    var index = summits.length+1;
-    const rect = canvasRef.current.getBoundingClientRect();
-    const x =  event.clientX - rect.left
-    const y = event.clientY - rect.top
-    setSummits([...summits, new Summit(index, x, y, CIRCLE_RADIUS, "X" + index)])
-    return
-  }
-
+  
   const paintingDraggableLine = (event) => {
     if(!paintDraggableLine) return;
       if(currentTool == Tools.line){
@@ -167,6 +159,7 @@ function App(){
   }
 
   const startPaintingDraggableSummit = (event) => {
+    if(event.which == 3) return;
     summits.forEach((summit) => {
       const rect = canvasRef.current.getBoundingClientRect();
     
@@ -250,19 +243,87 @@ function App(){
         return;
       }
     }
+
+   
     window.addEventListener('mousedown', startPainting )
     window.addEventListener('mouseup', stopPainting)
     window.addEventListener('mousemove', paint)
+  
     return function cleanupListener(){
       window.removeEventListener('mousedown', startPainting)
       window.removeEventListener('mouseup', stopPainting)
       window.removeEventListener('mousemove', paint)
+     
     }
   })
  
+  const summitFunctionnality = (event) => {
+    resetColor()
+         
+    var index = summits.length+1;
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x =  event.clientX - rect.left
+    const y = event.clientY - rect.top
+    setSummits([...summits, new Summit(index, x, y, CIRCLE_RADIUS, "X" + index)])
+    return
+  }
+
+  const selectionFunctionnality = (event) => {
+    summits.forEach((summit) =>{
+      const rect = canvasRef.current.getBoundingClientRect();
+    
+        const clientX =  event.clientX - rect.left
+        const clientY = event.clientY - rect.top
+        if(summit.summitClick(clientX, clientY)){   
+          setSelectedSummit(summit.getIndex())
+        }
+    })
+  }
+  const deleteSummit = () => {
+    resetColor()
+    let newSummits = []
+    summits.forEach((summit) => {
+
+      if(selectedSummit != summit.getIndex()){
+        if(summit.getIndex() < selectedSummit) newSummits = [...newSummits, summit]
+        else {
+          let newIndex = summit.getIndex() - 1
+          summit.setIndex(newIndex)
+          summit.setLabel("X" + newIndex)
+          newSummits = [...newSummits, summit]
+        }
+      }
+      
+    })
+    summits = newSummits
+    setSummits([...newSummits])
+    let newCurentLines = []
+   
+    lines.forEach((line, i) => {
+
+      if(line.getIndexBegin() != selectedSummit && line.getIndexEnd() != selectedSummit) {
+        if(line.getIndexBegin() > selectedSummit ){
+          line.setIndexBegin(line.getIndexBegin() - 1)     
+         }
+        if(line.getIndexEnd() > selectedSummit ){
+          line.setIndexEnd(line.getIndexEnd() - 1)    
+        }
+        
+        newCurentLines = [...newCurentLines, line]
+       }
+     
+    })
+    lines = newCurentLines
+    setLines([...newCurentLines])
+
+
+  }
   const handleCanvasClick =  (event) => {
       if(currentTool == Tools.summit){
          summitFunctionnality(event)
+      }
+      if(currentTool == Tools.select){
+        selectionFunctionnality(event)
       }
   } 
 
@@ -434,7 +495,7 @@ function App(){
                   width:"100%",
                   height: "100%"
                 }}>
-                    
+                   
                     <div style = {{
                       display: 'flex',
                       overflow: "hidden"
@@ -491,25 +552,7 @@ function App(){
                       <Divider color="primary"  />
                       </div>
 
-                       <div style={{
-                         display: "flex",
-                         alignItems: "stretch",
-                         justifyContent: "center",
-                         marginTop: 20,
-                         marginLeft: 10,
-                         marginRight: 10
-                       }} >
-                         <Typography variant="subtitle2" style={{
-                           color: "white",
-                           display: "flex"
-
-                         }} >
-                          <div style={{display:"flex", justifyContent: "center", alignItems:"center", marginRight: 10}} >
-                          <IconOptions color="white" />
-                          </div>
-                          Propriétées
-                         </Typography>
-                       </div>
+                       
                        <div style={{
                          display: "flex",
                          alignItems: "stretch",
@@ -524,12 +567,54 @@ function App(){
                           alignItems: "flex-start",
                           fontWeight: "bold"
                          }} >
-                           <IconPoint  />
-                           <IconPoint  />
+                          <Typography variant="subtitle2" style={{
+                           color: "white",
+                           display: "flex"
+
+                         }} >
+                          <div style={{display:"flex", justifyContent: "center", alignItems:"center", marginRight: 10}} >
+                          <IconOptions color="white" />
+                          </div>
+                          Propriétées
+                         </Typography>
                            
                          </Typography>
-                       </div>   
-
+                         
+                       </div> 
+                       <Divider style={{marginLeft: 10, marginRight:10, backgroundColor: Color.whiteColorWithOpacity, marginTop:20}} />
+                       <div style={{ 
+                       
+                       height: 50,
+                       
+                       display:"flex",
+                       alignItems: "stretch",
+                       justifyContent:"space-between",
+                       marginTop: 10,
+                       marginRight: 10,
+                       marginLeft: 10,
+                      }} >
+                         <Typography style={{height: "inherit", display:"flex", justifyContent:"center", alignItems:"center", color: Color.whiteColorWithOpacity, fontSize: 12}}>Sommet</Typography>
+                         <Typography style={{height: "inherit", display:"flex", justifyContent:"center", alignItems:"center", color: Color.whiteColorWithOpacity, fontSize: 12}}>Action</Typography>
+                         
+                           
+                      </div>
+                       <div style={{ 
+                       
+                        height: 50,
+                        
+                        display:"flex",
+                        alignItems: "stretch",
+                        justifyContent:"space-between",
+                        marginRight: 10,
+                        marginLeft: 10,
+                       }} >
+                          <Typography style={{width: 50, height: "inherit", display:"flex", justifyContent:"center", alignItems:"center", color: Color.whiteColor}}>X{selectedSummit}</Typography>
+                          <IconButton  aria-label="delete" onClick={deleteSummit} >
+                            <DeleteIcon style={{color: Color.whiteColor}} />
+                          </IconButton>
+                            
+                       </div> 
+                     
                     </Paper>  
 
                        <div style={{
@@ -572,7 +657,7 @@ function App(){
                         </Paper>
                         
                       </div>
-
+                      
                 </div>
                
       );

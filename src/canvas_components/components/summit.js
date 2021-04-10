@@ -20,7 +20,13 @@ export class Summit {
     setY(y){
         this.y = y/this.SCALE - this.OFFSET
     }
-    
+    setIndex(idx){
+        this.index = idx
+    }
+    setLabel(lbl){
+        this.label = lbl
+    }
+
     setShadow(ctx, color, ox, oy, blur)
     {
         ctx.shadowColor = color;
