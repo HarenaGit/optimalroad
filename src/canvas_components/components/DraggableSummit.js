@@ -1,5 +1,5 @@
 import {Color} from '../utilities/color'
-export class Summit {
+export class DraggableSummit {
     
     constructor(index, x, y, radius,label="", color = null, lineWidth = 15){
         this.SCALE = 0.1;
@@ -14,13 +14,6 @@ export class Summit {
         this.ctx = null;
     }
 
-    setX(x){
-        this.x = x/this.SCALE - this.OFFSET;
-    }
-    setY(y){
-        this.y = y/this.SCALE - this.OFFSET
-    }
-    
     setShadow(ctx, color, ox, oy, blur)
     {
         ctx.shadowColor = color;
@@ -29,26 +22,27 @@ export class Summit {
         ctx.shadowBlur = blur;
     }
 
-    draw(ctx){
+    draw(ctx, canvasWidth, canvasHeight){
         this.ctx = ctx;
+        ctx.clearRect(0,0, canvasWidth, canvasHeight)
         ctx.save();
         ctx.scale(this.SCALE, this.SCALE);
         
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, 2*Math.PI, true)
 
-        ctx.fillStyle = this.color ?? Color.defaultColor;
+        ctx.fillStyle = this.color ?? Color.defaultColorWithOpacity;
         this.setShadow(ctx, "rgba(0,0,0,0.7)", 0,0,5)
         ctx.fill();
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius - 75, 0, 2*Math.PI, true)
-        ctx.fillStyle = Color.whiteColor;
+        ctx.fillStyle = Color.whiteColorWithOpacity;
         ctx.fill();
       
         ctx.beginPath();
         this.setShadow(ctx, "rgba(0,0,0,0.7)", 0,0,0)
         ctx.font = "130px Verdana";
-        ctx.fillStyle =Color.whiteColor;
+        ctx.fillStyle =Color.whiteColorWithOpacity;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle'
         ctx.fillText(this.label, this.x, this.y + 350); 
@@ -57,22 +51,7 @@ export class Summit {
       
     }
 
-    setColor(color){
-        this.color = color
-        this.draw(this.ctx);
-    }
-
-    summitClick(xmouse, ymouse){
-        xmouse = xmouse / this.SCALE-this.OFFSET;
-        ymouse = ymouse / this.SCALE-this.OFFSET;
-        const distance = Math.sqrt(
-            ((xmouse - this.x) * (xmouse - this.x)) + ((ymouse - this.y)*(ymouse - this.y))
-        );
-        if(distance < this.radius) return true;
-        else return false;
-    }
-
-
+    
     getIndex(){
         return this.index;
     }

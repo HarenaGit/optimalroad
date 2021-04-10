@@ -18,7 +18,18 @@ export class Line{
         this.circle_radius = circle_radius;
     }
 
-
+    setXBegin(x){
+        this.x_begin = x/this.SCALE - this.OFFSET
+    }
+    setYBegin(y){
+        this.y_begin = y/this.SCALE - this.OFFSET
+    }
+    setXEnd(x){
+        this.x_end = x/this.SCALE - this.OFFSET
+    }
+    setYEnd(y){
+        this.y_end = y/this.SCALE - this.OFFSET
+    }
     
     draw(ctx){
         this.ctx = ctx;

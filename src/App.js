@@ -4,6 +4,7 @@ import {useCanvas} from './canvas_components/use_canvas'
 import {Summit} from './canvas_components/components/summit'
 import {Line} from './canvas_components/components/line'
 import {DraggableLine} from './canvas_components/components/draggableLine'
+import {DraggableSummit} from './canvas_components/components/DraggableSummit'
 import Tool from './components/Tools'
 import {Tools} from './canvas_components/utilities/tools'
 import {AlgoType} from './canvas_components/utilities/algoType'
@@ -18,6 +19,7 @@ import backgroundImage from './images/vector-dark.jpg'
 import {CircleRadius} from './canvas_components/utilities/circleRadius'
 import {Color} from './canvas_components/utilities/color'
 import Slide from './components/slider'
+ 
 
 
 const CIRCLE_RADIUS = CircleRadius;
@@ -33,77 +35,26 @@ function App(){
   let   [currentResult, setCurrentResult] = useState([])
   let [summits, setSummits,lines, setLines, draggableLine, setDraggableLine, canvasRef, canvasWidth, canvasHeight] = useCanvas();
   const  [lineCoordinate, setLineCoordinate] = useState([])
-  let painting = false
+  
+  let paintDraggableLine = false
   let currentLineCoordinate = []
   let trackerLine = false
   let trackerEndLineDraw = false
   let newLine = null
 
- 
-  React.useEffect(function setupListener(){
-    const startPaintingLine = (e) => {
-      if(currentTool == Tools.line) {
-        painting  = true
-         currentLineCoordinate = []
-         trackerLine = false
-       trackerEndLineDraw = false
-         newLine = null
-      }
-      else{
-        painting = false
-         currentLineCoordinate = []
-        trackerLine = false
-        trackerEndLineDraw = false
-        newLine = null
-      }
-    }
-  
-    const stopPaintingLine = (e) => {
-      
-      painting = false
-      trackerLine = false
-      newLine = null
-      if(currentTool == Tools.line && trackerEndLineDraw){
-         summits.forEach((summit) => {
-          const clientX =  currentLineCoordinate[0][0]
-          const clientY = currentLineCoordinate[0][1]
-          if(summit.summitClick(clientX, clientY)){ 
-            currentLineCoordinate[0][0] = summit.getX()
-            currentLineCoordinate[0][1] = summit.getY() 
-            currentLineCoordinate[0][3] = summit.getIndex()
-          }
-         })
-        let ok = false
-        summits.forEach((summit) => {
-            const clientX =  currentLineCoordinate[1][0]
-            const clientY = currentLineCoordinate[1][1]
-            if(summit.summitClick(clientX, clientY)){ 
-              currentLineCoordinate[1][0] = summit.getX()
-              currentLineCoordinate[1][1] = summit.getY() 
-              currentLineCoordinate[1][3] = summit.getIndex()
-              ok = true
-            }
-        })
-        if(currentLineCoordinate[0][0] == currentLineCoordinate[1][0] && currentLineCoordinate[0][1] == currentLineCoordinate[1][1]) return;
-      
-        resetColor()
-        if(ok){
-          let value =  prompt("Veuiller saisir la distance entre " + "X"+ currentLineCoordinate[0][3] + " et " + "X" + currentLineCoordinate[1][3])
-          
-          if(!isNaN(parseInt(value))){
-            setLines([ ...lines, new Line(currentLineCoordinate[0][0], currentLineCoordinate[0][1], currentLineCoordinate[1][0], currentLineCoordinate[1][1], parseInt(value),  currentLineCoordinate[0][3], currentLineCoordinate[1][3], CIRCLE_RADIUS)])
-          } 
-            
-        }
-        else setLineCoordinate([])
-       
-      }
-      currentLineCoordinate = [] 
-      trackerEndLineDraw = false
-      
-    }
-    const paint = async (event) => {
-      if(!painting) return;
+  const summitFunctionnality = (event) => {
+    resetColor()
+         
+    var index = summits.length+1;
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x =  event.clientX - rect.left
+    const y = event.clientY - rect.top
+    setSummits([...summits, new Summit(index, x, y, CIRCLE_RADIUS, "X" + index)])
+    return
+  }
+
+  const paintingDraggableLine = (event) => {
+    if(!paintDraggableLine) return;
       if(currentTool == Tools.line){
         const rect = canvasRef.current.getBoundingClientRect();     
         const clientX =  event.clientX - rect.left
@@ -146,44 +97,173 @@ function App(){
         }
       }
       else return;
+  }
+  const stopPaintingDraggableLine = (event) => {
+    paintDraggableLine = false
+    trackerLine = false
+    newLine = null
+     summits.forEach((summit) => {
+      const clientX =  currentLineCoordinate[0][0]
+      const clientY = currentLineCoordinate[0][1]
+      if(summit.summitClick(clientX, clientY)){ 
+        currentLineCoordinate[0][0] = summit.getX()
+        currentLineCoordinate[0][1] = summit.getY() 
+        currentLineCoordinate[0][3] = summit.getIndex()
+      }
+     })
+    let ok = false
+    summits.forEach((summit) => {
+        const clientX =  currentLineCoordinate[1][0]
+        const clientY = currentLineCoordinate[1][1]
+        if(summit.summitClick(clientX, clientY)){ 
+          currentLineCoordinate[1][0] = summit.getX()
+          currentLineCoordinate[1][1] = summit.getY() 
+          currentLineCoordinate[1][3] = summit.getIndex()
+          ok = true
+        }
+    })
+    if(currentLineCoordinate[0][0] == currentLineCoordinate[1][0] && currentLineCoordinate[0][1] == currentLineCoordinate[1][1]) return;
+  
+    resetColor()
+    if(ok){
+      let value =  prompt("Veuiller saisir la distance entre " + "X"+ currentLineCoordinate[0][3] + " et " + "X" + currentLineCoordinate[1][3])
+      
+      if(!isNaN(parseInt(value))){
+        setLines([ ...lines, new Line(currentLineCoordinate[0][0], currentLineCoordinate[0][1], currentLineCoordinate[1][0], currentLineCoordinate[1][1], parseInt(value),  currentLineCoordinate[0][3], currentLineCoordinate[1][3], CIRCLE_RADIUS)])
+      } 
+        
     }
-    window.addEventListener('mousedown', startPaintingLine )
-    window.addEventListener('mouseup', stopPaintingLine)
+    else setLineCoordinate([])
+    currentLineCoordinate = [] 
+    trackerEndLineDraw = false
+ 
+  }
+
+  const startPaintingDraggableLine = (event) => {
+    paintDraggableLine  = true
+    currentLineCoordinate = []
+    trackerLine = false
+    trackerEndLineDraw = false
+    newLine = null
+  
+  
+  }
+
+  let paintDraggableSummit = false
+  let draggableSummitIndex = null;
+  let currentDraggableSummit = null;
+
+  const paintingDraggableSummit = (event) => {
+    if(!paintDraggableSummit) return;
+    const rect = canvasRef.current.getBoundingClientRect();
+    const clientX =  event.clientX - rect.left
+    const clientY = event.clientY - rect.top
+    currentDraggableSummit = new DraggableSummit(draggableSummitIndex, clientX, clientY, CIRCLE_RADIUS, "X" + draggableSummitIndex);
+    currentDraggableSummit.draw(canvasRef.current.getContext('2d'), canvasWidth, canvasHeight)
+    summits.forEach((summit) => {
+      summit.draw(canvasRef.current.getContext('2d'), canvasWidth, canvasHeight)  
+    })
+    lines.forEach((line) => { line.draw(canvasRef.current.getContext('2d'), canvasWidth, canvasHeight) })  
+  }
+
+  const startPaintingDraggableSummit = (event) => {
+    summits.forEach((summit) => {
+      const rect = canvasRef.current.getBoundingClientRect();
+    
+        const clientX =  event.clientX - rect.left
+        const clientY = event.clientY - rect.top
+        if(summit.summitClick(clientX, clientY)){   
+          paintDraggableSummit = true;
+          draggableSummitIndex = summit.getIndex()
+        }
+    })
+  }
+  const stopPaintingDraggableSummit = (event) => {
+     
+     summits.forEach((summit) => {
+       if(draggableSummitIndex == summit.getIndex()){
+        
+        const rect = canvasRef.current.getBoundingClientRect();
+        const clientX =  event.clientX - rect.left
+        const clientY = event.clientY - rect.top
+         summit.setX(clientX)
+         summit.setY(clientY)
+       }
+     })
+     setSummits([...summits])
+     let existsLine = false
+     lines.forEach((line) => {
+       if(draggableSummitIndex == line.getIndexBegin()){
+        const rect = canvasRef.current.getBoundingClientRect();
+        const clientX =  event.clientX - rect.left
+        const clientY = event.clientY - rect.top
+         line.setXBegin(clientX)
+         line.setYBegin(clientY)
+         existsLine = true
+       }
+       if(draggableSummitIndex == line.getIndexEnd()){
+        const rect = canvasRef.current.getBoundingClientRect();
+        const clientX =  event.clientX - rect.left
+        const clientY = event.clientY - rect.top
+         line.setXEnd(clientX)
+         line.setYEnd(clientY)
+         existsLine = true
+       }
+     })
+     if(existsLine) setLines([...lines])
+     paintDraggableSummit = false
+     draggableSummitIndex = null;
+     currentDraggableSummit = null;
+  }
+
+  React.useEffect(function setupListener(){
+    const startPainting = (event) => {
+      if(currentTool == Tools.line) {
+         startPaintingDraggableLine(event)
+         return;
+      }
+      if(currentTool == Tools.select){
+        startPaintingDraggableSummit(event)
+      }
+    }
+  
+    const stopPainting = (event) => {
+      
+      if(currentTool == Tools.line && trackerEndLineDraw){
+        stopPaintingDraggableLine(event);
+        return;
+      }
+      if(currentTool == Tools.select){
+        stopPaintingDraggableSummit(event)
+        return;
+      }
+     
+      
+    }
+    const paint = async (event) => {
+      if(currentTool == Tools.line){
+        paintingDraggableLine(event)
+        return;
+      }
+      if(currentTool == Tools.select){
+        paintingDraggableSummit(event)
+        return;
+      }
+    }
+    window.addEventListener('mousedown', startPainting )
+    window.addEventListener('mouseup', stopPainting)
     window.addEventListener('mousemove', paint)
     return function cleanupListener(){
-      window.removeEventListener('mousedown', startPaintingLine )
-      window.removeEventListener('mouseup', stopPaintingLine)
+      window.removeEventListener('mousedown', startPainting)
+      window.removeEventListener('mouseup', stopPainting)
       window.removeEventListener('mousemove', paint)
     }
   })
  
-  
-  const summitFunctionnality = (event) => {
-    resetColor()
-         
-    var index = summits.length+1;
-    const rect = canvasRef.current.getBoundingClientRect();
-    
-    const x =  event.clientX - rect.left
-    const y = event.clientY - rect.top
-    setSummits([...summits, new Summit(index, x, y, CIRCLE_RADIUS, "X" + index)])
-    return
-  }
-
-  const selectFunctionnality = (event) => {
-
-  }
- 
   const handleCanvasClick =  (event) => {
-    
       if(currentTool == Tools.summit){
          summitFunctionnality(event)
       }
-      if(currentTool == Tools.select){
-        selectFunctionnality(event)
-      }
-     
-
   } 
 
   const handleClearCanvas = (event) => {
@@ -376,7 +456,7 @@ function App(){
                       left: - 10,
                       top: 10
                     }}>
-                      <Tool summitFunction = {handleSummitTool} clearFunction = {handleClearCanvas}  lineFunction = {handleLineTool} />
+                      <Tool summitFunction = {handleSummitTool} clearFunction = {handleClearCanvas} selectFunction={handleSelectionTool}  lineFunction = {handleLineTool} />
                     </div>
                     <Paper style ={{
                       position: "absolute",

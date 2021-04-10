@@ -86,6 +86,7 @@ export default function Tools({summitFunction, lineFunction, selectFunction, cle
                 setActiveLine(inactiveColor)
                 setActiveSelect(activeColor)
                 setActiveClear(inactiveColor)
+                    selectFunction()
                 }}
                style = {{
                    marginLeft: 15,
@@ -97,7 +98,7 @@ export default function Tools({summitFunction, lineFunction, selectFunction, cle
                </IconButton>
 
                <IconButton
-               title = "Effacer"
+               title = "Suppression"
                aria-label = "node"
                onClick = {() => {
                 setActiveSummit(inactiveColor)
