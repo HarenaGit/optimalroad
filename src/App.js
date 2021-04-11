@@ -36,7 +36,7 @@ function App(){
   let [summits, setSummits,lines, setLines, draggableLine, setDraggableLine, canvasRef, canvasWidth, canvasHeight] = useCanvas();
   const  [lineCoordinate, setLineCoordinate] = useState([])
   const [selectedSummit, setSelectedSummit] = useState()
-
+  const [selectedLine, setSelectedLine] = useState()
   
   let paintDraggableLine = false
   let currentLineCoordinate = []
@@ -210,7 +210,7 @@ function App(){
   }
 
   React.useEffect(function setupListener(){
-    const startPainting = (event) => {
+      const startPainting = (event) => {
       if(currentTool == Tools.line) {
          startPaintingDraggableLine(event)
          return;
@@ -258,8 +258,7 @@ function App(){
   })
  
   const summitFunctionnality = (event) => {
-    resetColor()
-         
+    resetColor()    
     var index = summits.length+1;
     const rect = canvasRef.current.getBoundingClientRect();
     const x =  event.clientX - rect.left
@@ -269,15 +268,31 @@ function App(){
   }
 
   const selectionFunctionnality = (event) => {
+    resetColor()
+    let isSummitSelected = false
     summits.forEach((summit) =>{
-      const rect = canvasRef.current.getBoundingClientRect();
-    
+        const rect = canvasRef.current.getBoundingClientRect();
         const clientX =  event.clientX - rect.left
         const clientY = event.clientY - rect.top
         if(summit.summitClick(clientX, clientY)){   
           setSelectedSummit(summit.getIndex())
+          summit.setColor(Color.activeColor)
+          isSummitSelected = true
         }
     })
+    if(isSummitSelected) setSummits([...summits])
+    let isLineSelected = false
+    lines.forEach((line) => {
+        const rect = canvasRef.current.getBoundingClientRect();
+        const clientX =  event.clientX - rect.left
+        const clientY = event.clientY - rect.top
+        if(line.lineClick(clientX, clientY)){
+          isLineSelected = true;
+          line.setColor(Color.activeColor, Color.whiteColor)
+          setSelectedLine(line)
+        }
+    })
+    if(isLineSelected) setLines([...lines])
   }
   const deleteSummit = () => {
     resetColor()
@@ -318,6 +333,17 @@ function App(){
 
 
   }
+  const deleteLine = () => {
+    let newLines = []
+    lines.forEach((line) => {
+      if(line.getIndexBegin() == selectedLine.getIndexBegin() && line.getIndexEnd() == selectedLine.getIndexEnd()) {
+          return
+      }
+      else newLines = [...newLines, line]
+    })
+    lines = newLines
+    setLines([...lines])
+  }
   const handleCanvasClick =  (event) => {
       if(currentTool == Tools.summit){
          summitFunctionnality(event)
@@ -333,12 +359,15 @@ function App(){
       resetCurrentDetail()
   }
   const handleSummitTool = (e) => {
+      resetColor()
       setCurrentTool(Tools.summit)
   }
   const handleLineTool = (e) => {
+      resetColor()
       setCurrentTool(Tools.line)
   }
   const handleSelectionTool = (e) =>{
+      resetColor()
       setCurrentTool(Tools.select)
   }
 
@@ -486,7 +515,14 @@ function App(){
       }
       else return (<></>)
     }
-
+    const selectedLineView = () => {
+      if(selectedLine != null){
+        return (
+        <>
+          {`x${selectedLine.getIndexBegin()} > x${selectedLine.getIndexEnd()}`}
+        </>)
+      }
+    }
     return (
        
          <div style = {{
@@ -608,12 +644,46 @@ function App(){
                         marginRight: 10,
                         marginLeft: 10,
                        }} >
-                          <Typography style={{width: 50, height: "inherit", display:"flex", justifyContent:"center", alignItems:"center", color: Color.whiteColor}}>X{selectedSummit}</Typography>
+                          <Typography style={{width: 50, height: "inherit", display:"flex", justifyContent:"center", alignItems:"center", color: Color.whiteColor}}>x{selectedSummit}</Typography>
                           <IconButton  aria-label="delete" onClick={deleteSummit} >
                             <DeleteIcon style={{color: Color.whiteColor}} />
                           </IconButton>
                             
                        </div> 
+
+                       <div style={{ 
+                       
+                       height: 50,
+                       
+                       display:"flex",
+                       alignItems: "stretch",
+                       justifyContent:"space-between",
+                       marginTop: 10,
+                       marginRight: 10,
+                       marginLeft: 10,
+                      }} >
+                         <Typography style={{height: "inherit", display:"flex", justifyContent:"center", alignItems:"center", color: Color.whiteColorWithOpacity, fontSize: 12}}>Arc</Typography>
+                         <Typography style={{height: "inherit", display:"flex", justifyContent:"center", alignItems:"center", color: Color.whiteColorWithOpacity, fontSize: 12}}>Valeur</Typography>
+                         <Typography style={{height: "inherit", display:"flex", justifyContent:"center", alignItems:"center", color: Color.whiteColorWithOpacity, fontSize: 12}}>Action</Typography>
+                           
+                      </div>
+                      <div style={{ 
+                       
+                       height: 50,
+                       
+                       display:"flex",
+                       alignItems: "stretch",
+                       justifyContent:"space-between",
+                       marginRight: 10,
+                       marginLeft: 10,
+                      }} >
+                        <Typography style={{ display:"flex", justifyContent:"center", alignItems:"center", color: Color.whiteColor}}>{selectedLineView()}</Typography>
+                         <Typography style={{ display:"flex", justifyContent:"center", alignItems:"center", color: Color.whiteColor}}>...</Typography>
+                         <IconButton  aria-label="delete" onClick={deleteLine} >
+                           <DeleteIcon style={{color: Color.whiteColor}} />
+                         </IconButton>
+                           
+                      </div> 
                      
                     </Paper>  
 

@@ -1,6 +1,5 @@
 import {circle2LineIntersectionCoordinate, lineEquation} from '../algorithms/circle2LineIntersection'
 import {Color} from '../utilities/color'
-
 export class Line{
     constructor(x_begin, y_begin, x_end, y_end, value = 0, index_begin=0, index_end=0, circle_radius, color = null){
         this.SCALE = 0.1;
@@ -16,8 +15,37 @@ export class Line{
         this.valueColor = Color.blackColor
         this.ctx = null;
         this.circle_radius = circle_radius;
+        this.size = 80
     }
 
+    lineClick(xmouse, ymouse){
+        xmouse = xmouse / this.SCALE-this.OFFSET;
+        ymouse = ymouse / this.SCALE-this.OFFSET;
+        if(this.x_begin == this.x_end){
+            console.log("test")
+        }
+        if(this.x_begin < this.x_end){
+            let isXmouseOk = xmouse > this.x_begin && xmouse < this.x_end 
+            if(!isXmouseOk) return false;
+           }
+       
+        else{
+            let isXmouseOk = xmouse < this.x_begin && xmouse > this.x_end 
+            if(!isXmouseOk) return false;
+           
+        }
+        let coeficient = lineEquation(this.x_begin, this.y_begin, this.x_end, this.y_end)
+        let a = coeficient[0]
+        let b = coeficient[1]
+        let ymouseResult = a*xmouse + b
+       
+        const distance = Math.sqrt(
+             ((ymouse - ymouseResult)*(ymouse - ymouseResult))
+        );
+       
+        if(distance <= this.size) return true;
+        else return false;
+    }
     setXBegin(x){
         this.x_begin = x/this.SCALE - this.OFFSET
     }
@@ -99,7 +127,7 @@ export class Line{
        
         let p1 = {x: x_arrow_begin, y: y_arrow_begin}
         let p2 = {x: x_arrow, y: y_arrow}
-        let size = 60
+        let size = this.size
         var angle = Math.atan2((p2.y - p1.y) , (p2.x - p1.x));
         var hyp = Math.sqrt((p2.x - p1.x) * (p2.x - p1.x) + (p2.y - p1.y) * (p2.y - p1.y));
       
