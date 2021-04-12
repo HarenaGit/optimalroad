@@ -1,5 +1,6 @@
 export const Tools = {
     summit: "sommet",
     line: "line",
-    select: "select"
+    select: "select",
+    clear: "reinitialisation"
 }

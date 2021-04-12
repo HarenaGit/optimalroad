@@ -11,7 +11,7 @@ import {AlgoType} from './canvas_components/utilities/algoType'
 import {createDemouchronArray, Demouchron} from './canvas_components/algorithms/algorithms'
 import {Algorithm} from './canvas_components/utilities/algorithm'
 
-import { Button, Divider, Paper, Typography } from '@material-ui/core';
+import { Button, Divider, Paper, TextField, Typography } from '@material-ui/core';
 import IconPoint from '@material-ui/icons/Settings'
 import DropDown from './components/dropdown'
 import IconOptions from '@material-ui/icons/TollTwoTone'
@@ -21,6 +21,13 @@ import {Color} from './canvas_components/utilities/color'
 import Slide from './components/slider'
 import DeleteIcon from '@material-ui/icons/Delete';
 import IconButton from '@material-ui/core/IconButton'
+import { makeStyles } from "@material-ui/core/styles";
+import Dialog from '@material-ui/core/Dialog';
+import MuiDialogTitle from '@material-ui/core/DialogTitle';
+import MuiDialogContent from '@material-ui/core/DialogContent';
+import MuiDialogActions from '@material-ui/core/DialogActions';
+import CloseIcon from '@material-ui/icons/Close';
+import { withStyles } from '@material-ui/core/styles';
 
 const CIRCLE_RADIUS = CircleRadius;
 const infinie = '∞';
@@ -37,6 +44,10 @@ function App(){
   const  [lineCoordinate, setLineCoordinate] = useState([])
   const [selectedSummit, setSelectedSummit] = useState()
   const [selectedLine, setSelectedLine] = useState()
+  const [selectedLineValue, setSelectedLineValue] = useState()
+  const [openDialog, setOpenDialog] = useState(false);
+  const [currentLineDraw, setCurrentLineDraw] = useState();
+  const [currentLineDrawValue, setCurrentLineDrawValue] = useState();
   
   let paintDraggableLine = false
   let currentLineCoordinate = []
@@ -115,17 +126,16 @@ function App(){
         }
     })
     if(currentLineCoordinate[0][0] == currentLineCoordinate[1][0] && currentLineCoordinate[0][1] == currentLineCoordinate[1][1]) return;
+    lines.forEach((line) => {
+      if(line.getIndexBegin() == currentLineCoordinate[0][3] && line.getIndexEnd() == currentLineCoordinate[1][3]) ok = false
+    })
   
     resetColor()
     if(ok){
-      let value =  prompt("Veuiller saisir la distance entre " + "X"+ currentLineCoordinate[0][3] + " et " + "X" + currentLineCoordinate[1][3])
-      
-      if(!isNaN(parseInt(value))){
-        setLines([ ...lines, new Line(currentLineCoordinate[0][0], currentLineCoordinate[0][1], currentLineCoordinate[1][0], currentLineCoordinate[1][1], parseInt(value),  currentLineCoordinate[0][3], currentLineCoordinate[1][3], CIRCLE_RADIUS)])
-      } 
-        
+      setOpenDialog(true)
+      setCurrentLineDraw(currentLineCoordinate)
     }
-    else setLineCoordinate([])
+    
     currentLineCoordinate = [] 
     trackerEndLineDraw = false
  
@@ -269,6 +279,8 @@ function App(){
 
   const selectionFunctionnality = (event) => {
     resetColor()
+    setSelectedSummit()
+    setSelectedLine()
     let isSummitSelected = false
     summits.forEach((summit) =>{
         const rect = canvasRef.current.getBoundingClientRect();
@@ -278,6 +290,7 @@ function App(){
           setSelectedSummit(summit.getIndex())
           summit.setColor(Color.activeColor)
           isSummitSelected = true
+          setSelectedLine()
         }
     })
     if(isSummitSelected) setSummits([...summits])
@@ -290,17 +303,19 @@ function App(){
           isLineSelected = true;
           line.setColor(Color.activeColor, Color.whiteColor)
           setSelectedLine(line)
+          setSelectedLineValue(line.getValue())
+          setSelectedSummit()
         }
     })
     if(isLineSelected) setLines([...lines])
   }
-  const deleteSummit = () => {
+  const deleteSummit = (index) => {
     resetColor()
     let newSummits = []
     summits.forEach((summit) => {
 
-      if(selectedSummit != summit.getIndex()){
-        if(summit.getIndex() < selectedSummit) newSummits = [...newSummits, summit]
+      if(index != summit.getIndex()){
+        if(summit.getIndex() < index) newSummits = [...newSummits, summit]
         else {
           let newIndex = summit.getIndex() - 1
           summit.setIndex(newIndex)
@@ -316,11 +331,11 @@ function App(){
    
     lines.forEach((line, i) => {
 
-      if(line.getIndexBegin() != selectedSummit && line.getIndexEnd() != selectedSummit) {
-        if(line.getIndexBegin() > selectedSummit ){
+      if(line.getIndexBegin() != index && line.getIndexEnd() != index) {
+        if(line.getIndexBegin() > index ){
           line.setIndexBegin(line.getIndexBegin() - 1)     
          }
-        if(line.getIndexEnd() > selectedSummit ){
+        if(line.getIndexEnd() > index ){
           line.setIndexEnd(line.getIndexEnd() - 1)    
         }
         
@@ -330,19 +345,22 @@ function App(){
     })
     lines = newCurentLines
     setLines([...newCurentLines])
-
+    setSelectedLine()
+    setSelectedSummit()
 
   }
-  const deleteLine = () => {
+  const deleteLine = (li) => {
     let newLines = []
     lines.forEach((line) => {
-      if(line.getIndexBegin() == selectedLine.getIndexBegin() && line.getIndexEnd() == selectedLine.getIndexEnd()) {
+      if(line.getIndexBegin() == li.getIndexBegin() && line.getIndexEnd() == li.getIndexEnd()) {
           return
       }
       else newLines = [...newLines, line]
     })
     lines = newLines
     setLines([...lines])
+    setSelectedLine()
+    setSelectedSummit()
   }
   const handleCanvasClick =  (event) => {
       if(currentTool == Tools.summit){
@@ -354,20 +372,34 @@ function App(){
   } 
 
   const handleClearCanvas = (event) => {
+      
+      setCurrentTool(Tools.clear)
+      setSelectedLine()
+      setSelectedSummit()
+      setSelectedLineValue()
       setSummits([]);
       setLines([]);
       resetCurrentDetail()
   }
   const handleSummitTool = (e) => {
       resetColor()
+      setSelectedLine()
+      setSelectedSummit()
+      setSelectedLineValue()
       setCurrentTool(Tools.summit)
   }
   const handleLineTool = (e) => {
       resetColor()
+      setSelectedLine()
+      setSelectedSummit()
+      setSelectedLineValue()
       setCurrentTool(Tools.line)
   }
   const handleSelectionTool = (e) =>{
       resetColor()
+      setSelectedLine()
+      setSelectedSummit()
+      setSelectedLineValue()
       setCurrentTool(Tools.select)
   }
 
@@ -375,8 +407,10 @@ function App(){
       resetColor()
       currentArrayDetail = []
       setCurrentArrayDetail([])
-      let d = createDemouchronArray(summits.length, summits.length, currentAlgoType)
-      let initialMatrice = createDemouchronArray(summits.length, summits.length, currentAlgoType);
+      let d = []
+      let initialMatrice = []
+      d = createDemouchronArray(summits.length, summits.length, currentAlgoType)
+      initialMatrice = createDemouchronArray(summits.length, summits.length, currentAlgoType);
       
       lines.forEach((line) => {
           let idx = line.getIndex();
@@ -387,7 +421,7 @@ function App(){
           initialMatrice[row][col] = value;
       })
       
-     Demouchron(currentAlgoType, d, initialMatrice, currentAlgorithm, addDetail, getResult).then((resp) => { changeGraphColor(resp); }) 
+     Demouchron(currentAlgoType, d, initialMatrice, currentAlgorithm, addDetail, getResult).then((resp) => { changeGraphColor(resp); d = []; initialMatrice = [] }) 
 
      
   }
@@ -452,7 +486,24 @@ function App(){
   const selectAlgorithm = (option) => {
     setCurrentAlgorithm(option)
   }
-
+  const changeLinevalue = (event, li) => {
+    resetColor()
+    let isLineSelected = false
+    lines.forEach((line) => {
+        if(line.getIndexBegin() == li.getIndexBegin() && line.getIndexEnd() == li.getIndexEnd()){
+          if(!isNaN(parseInt(event.target.value))){
+            line.setValue(parseInt(event.target.value))
+            
+          }
+          else{
+            line.setValue(0)
+          }
+          isLineSelected = true
+        }
+    })
+    if(isLineSelected) setLines([...lines])
+    setSelectedLineValue(event.target.value)
+  }
   const viewCalculatedValue = (j, isResult) => {
     if(j == Infinity) {
       return (
@@ -515,22 +566,323 @@ function App(){
       }
       else return (<></>)
     }
-    const selectedLineView = () => {
-      if(selectedLine != null){
+    const selectedLineView = (line) => {
+      if(line != null){
         return (
         <>
-          {`x${selectedLine.getIndexBegin()} > x${selectedLine.getIndexEnd()}`}
+          {`x${line.getIndexBegin()} > x${line.getIndexEnd()}`}
         </>)
       }
     }
+
+    const useStyles = makeStyles({
+      root: {
+        "& .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline": {
+          borderColor: Color.whiteColor
+        },
+        "&:hover .MuiOutlinedInput-root .MuiOutlinedInput-notchedOutline": {
+          borderColor: Color.whiteColor
+        },
+        "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline": {
+          borderColor: Color.whiteColor
+        }
+      }
+    });
+    const classes = useStyles();
+
+  const summitPropertiesView = (index) => {
+    return(
+      <>
+          <div style={{ 
+                       
+                       height: 50,
+                       
+                       display:"flex",
+                       alignItems: "stretch",
+                       justifyContent:"space-between",
+                       marginRight: 10,
+                       marginLeft: 10,
+                      }} >
+                         <Typography style={{width: 50, height: "inherit", display:"flex", justifyContent:"center", alignItems:"center", color: Color.whiteColor}}>x{index}</Typography>
+                         <IconButton  aria-label="delete" onClick={() => deleteSummit(index)} >
+                           <DeleteIcon style={{color: Color.whiteColor}} />
+                         </IconButton>
+                           
+          </div> 
+        
+      </>
+    )
+  }
+
+  const linePropertiesView = (value, line) => {
+      return(
+        <>
+                       <div style={{ 
+                       
+                       height: 50,
+                       
+                       display:"flex",
+                       alignItems: "stretch",
+                       justifyContent:"space-between",
+                       marginRight: 10,
+                       marginLeft: 10,
+                       marginBottom : 20
+                      }} >
+                        <Typography style={{ display:"flex", justifyContent:"center", alignItems:"center", color: Color.whiteColor}}>{selectedLineView(line)}</Typography>
+                        <TextField
+                         
+                          value = {value}
+                          className={classes.root}
+                          onChange = {(event) => changeLinevalue(event, line)}
+                          variant="outlined"
+                          label=""
+                          inputProps = {{
+                            style : {
+                              color: Color.whiteColor,
+                              width: "50px",
+                             
+                            }
+                          }}
+                        />
+                         <IconButton  aria-label="delete" onClick={() => deleteLine(line)} >
+                           <DeleteIcon style={{color: Color.whiteColor}} />
+                         </IconButton>
+                           
+                      </div> 
+     
+        
+        </>
+      )
+  }
+
+  const currentElementProperties = () => {
+    if(selectedSummit != null){
+      return(
+        <>
+         <div style={{ 
+                       
+                       height: 50,
+                       
+                       display:"flex",
+                       alignItems: "stretch",
+                       justifyContent:"space-between",
+                       marginTop: 10,
+                       marginRight: 10,
+                       marginLeft: 10,
+                      }} >
+                         <Typography style={{height: "inherit", display:"flex", justifyContent:"center", alignItems:"center", color: Color.whiteColorWithOpacity, fontSize: 12}}>Sommet</Typography>
+                         <Typography style={{height: "inherit", display:"flex", justifyContent:"center", alignItems:"center", color: Color.whiteColorWithOpacity, fontSize: 12}}>Action</Typography>                
+          </div>
+         {summitPropertiesView(selectedSummit)}
+        </>
+      )
+    }
+    if(selectedLine != null){
+      return(
+        <>
+          <div style={{ 
+                       
+                       height: 50,
+                       
+                       display:"flex",
+                       alignItems: "stretch",
+                       justifyContent:"space-between",
+                       marginTop: 10,
+                       marginRight: 10,
+                       marginLeft: 10,
+                      }} >
+                         <Typography style={{height: "inherit", display:"flex", justifyContent:"center", alignItems:"center", color: Color.whiteColorWithOpacity, fontSize: 12}}>Arc</Typography>
+                         <Typography style={{height: "inherit", display:"flex", justifyContent:"center", alignItems:"center", color: Color.whiteColorWithOpacity, fontSize: 12}}>Valeur</Typography>
+                         <Typography style={{height: "inherit", display:"flex", justifyContent:"center", alignItems:"center", color: Color.whiteColorWithOpacity, fontSize: 12}}>Action</Typography>
+                           
+                      </div>
+          {linePropertiesView(selectedLineValue, selectedLine)}
+        </>
+      )
+    }
+  }
+  const currentPropertiesView = () => {
+    if(currentTool == Tools.select){
+      return(
+        <>
+          {currentElementProperties()}
+        </>
+      )
+    }
+    if(currentTool == Tools.summit){
+      return (
+        <>
+         <div style={{ 
+                       
+                       height: 50,
+                       
+                       display:"flex",
+                       alignItems: "stretch",
+                       justifyContent:"space-between",
+                       marginTop: 10,
+                       marginRight: 10,
+                       marginLeft: 10,
+                      }} >
+                         <Typography style={{height: "inherit", display:"flex", justifyContent:"center", alignItems:"center", color: Color.whiteColorWithOpacity, fontSize: 12}}>Sommet</Typography>
+                         <Typography style={{height: "inherit", display:"flex", justifyContent:"center", alignItems:"center", color: Color.whiteColorWithOpacity, fontSize: 12}}>Action</Typography>                
+        </div>
+        {summits.map((summit) => {
+          return(
+            <>
+             {summitPropertiesView(summit.getIndex())}
+            </>
+          );
+        })}
+        </>
+      )
+    }
+    if(currentTool == Tools.line){
+      return(
+        <>
+            <div style={{ 
+                       
+                       height: 50,
+                       
+                       display:"flex",
+                       alignItems: "stretch",
+                       justifyContent:"space-between",
+                       marginTop: 10,
+                       marginRight: 10,
+                       marginLeft: 10,
+                      }} >
+                         <Typography style={{height: "inherit", display:"flex", justifyContent:"center", alignItems:"center", color: Color.whiteColorWithOpacity, fontSize: 12}}>Arc</Typography>
+                         <Typography style={{height: "inherit", display:"flex", justifyContent:"center", alignItems:"center", color: Color.whiteColorWithOpacity, fontSize: 12}}>Valeur</Typography>
+                         <Typography style={{height: "inherit", display:"flex", justifyContent:"center", alignItems:"center", color: Color.whiteColorWithOpacity, fontSize: 12}}>Action</Typography>
+                           
+                      </div>
+          {lines.map((line) => {
+            return(
+              <>
+              {linePropertiesView(line.getValue(), line)}
+              </>
+            )
+          })}
+       
+        </>
+      )
+    }
+    
+  }
+
+  const styles = theme => ({
+    root: {
+      margin: 0,
+      padding: theme.spacing(2),
+    },
+    closeButton: {
+      position: 'absolute',
+      right: theme.spacing(1),
+      top: theme.spacing(1),
+      color: theme.palette.grey[500],
+    },
+  });
+  
+  const DialogTitle = withStyles(styles)(props => {
+    const { children, classes, onClose, ...other } = props;
+    return (
+      <MuiDialogTitle disableTypography className={classes.root} {...other}>
+        <Typography variant="h6" style={{color: Color.whiteColor}}>{children}</Typography>
+        {onClose ? (
+          <IconButton aria-label="close" className={classes.closeButton} onClick={onClose}>
+            <CloseIcon />
+          </IconButton>
+        ) : null}
+      </MuiDialogTitle>
+    );
+  });
+  
+  const DialogContent = withStyles(theme => ({
+    root: {
+      padding: theme.spacing(2),
+      color: Color.whiteColor,
+    },
+  
+  }))(MuiDialogContent);
+  
+  const DialogActions = withStyles(theme => ({
+    root: {
+      margin: 0,
+      padding: theme.spacing(1),
+      color: Color.whiteColor
+    },
+  }))(MuiDialogActions);
+  
+    
+  
+
+  const handleClickOpen = () => {
+    setOpenDialog(true);
+  };
+  const handleClose = () => {
+    setOpenDialog(false);
+  };
+  const handleAddLine = () => {
+    if(!isNaN(parseInt(currentLineDrawValue))){
+      setLines([ ...lines, new Line (currentLineDraw[0][0], currentLineDraw[0][1], currentLineDraw[1][0], currentLineDraw[1][1], parseInt(currentLineDrawValue),  currentLineDraw[0][3], currentLineDraw[1][3], CIRCLE_RADIUS)])
+    } 
+  else setLineCoordinate([])
+  setOpenDialog(false);
+  setCurrentLineDrawValue()
+  }
+  const titleArcDialog = () => {
+    if(currentLineDraw != null)
+    {
+      return(
+        <>
+        Veuiller saisir la distance entre X{currentLineDraw[0][3] ?? ""} et X{currentLineDraw[1][3] ?? ""} : 
+        </>
+      )
+    }
+  }
+
+  const changeLineDrawValue = (event) => {
+setCurrentLineDrawValue(event.target.value)
+                        
+  }
     return (
        
          <div style = {{
                   backgroundImage: `url(${backgroundImage})`,
                   backgroundSize: "cover",
                   width:"100%",
-                  height: "100%"
+                  height: "101%"
                 }}>
+
+            <Dialog  onClose={handleClose} aria-labelledby="customized-dialog-title" open={openDialog}>
+                <DialogTitle style={{backgroundColor: Color.backgroundColor}} id="customized-dialog-title" onClose={handleClose}>
+                   Valeur de l'arc
+                </DialogTitle>
+                <DialogContent style={{backgroundColor: Color.backgroundColor}} dividers>
+                  <Typography style={{color: Color.whiteColor}} gutterBottom>
+                  {titleArcDialog()}
+                  </Typography>
+                  <TextField
+                         
+                         fullWidth
+                        autoFocus
+                         value={currentLineDrawValue}
+                         onSubmit = {handleAddLine}
+                         onChange = {changeLineDrawValue}
+                         label="..."
+                         inputProps = {{
+                           style : {
+                             color: Color.whiteColor,
+                           }
+                         }}
+                       />
+                </DialogContent>
+                <DialogActions style={{backgroundColor: Color.backgroundColor}}>
+                  <Button  onClick={handleAddLine} style={{color: Color.whiteColor}}>
+                    ok
+                  </Button>
+                </DialogActions>
+              </Dialog>
+
                    
                     <div style = {{
                       display: 'flex',
@@ -563,7 +915,7 @@ function App(){
                       height: canvasHeight,
                       backgroundColor: Color.backgroundColor,
                       zIndex: 5,
-                      
+                      overflow: "auto"
                     }}>
 
                        <div style={{
@@ -584,11 +936,6 @@ function App(){
                             
                        </div>
 
-                       <div style={{marginTop: 20}}>
-                      <Divider color="primary"  />
-                      </div>
-
-                       
                        <div style={{
                          display: "flex",
                          alignItems: "stretch",
@@ -618,73 +965,7 @@ function App(){
                          
                        </div> 
                        <Divider style={{marginLeft: 10, marginRight:10, backgroundColor: Color.whiteColorWithOpacity, marginTop:20}} />
-                       <div style={{ 
-                       
-                       height: 50,
-                       
-                       display:"flex",
-                       alignItems: "stretch",
-                       justifyContent:"space-between",
-                       marginTop: 10,
-                       marginRight: 10,
-                       marginLeft: 10,
-                      }} >
-                         <Typography style={{height: "inherit", display:"flex", justifyContent:"center", alignItems:"center", color: Color.whiteColorWithOpacity, fontSize: 12}}>Sommet</Typography>
-                         <Typography style={{height: "inherit", display:"flex", justifyContent:"center", alignItems:"center", color: Color.whiteColorWithOpacity, fontSize: 12}}>Action</Typography>
-                         
-                           
-                      </div>
-                       <div style={{ 
-                       
-                        height: 50,
-                        
-                        display:"flex",
-                        alignItems: "stretch",
-                        justifyContent:"space-between",
-                        marginRight: 10,
-                        marginLeft: 10,
-                       }} >
-                          <Typography style={{width: 50, height: "inherit", display:"flex", justifyContent:"center", alignItems:"center", color: Color.whiteColor}}>x{selectedSummit}</Typography>
-                          <IconButton  aria-label="delete" onClick={deleteSummit} >
-                            <DeleteIcon style={{color: Color.whiteColor}} />
-                          </IconButton>
-                            
-                       </div> 
-
-                       <div style={{ 
-                       
-                       height: 50,
-                       
-                       display:"flex",
-                       alignItems: "stretch",
-                       justifyContent:"space-between",
-                       marginTop: 10,
-                       marginRight: 10,
-                       marginLeft: 10,
-                      }} >
-                         <Typography style={{height: "inherit", display:"flex", justifyContent:"center", alignItems:"center", color: Color.whiteColorWithOpacity, fontSize: 12}}>Arc</Typography>
-                         <Typography style={{height: "inherit", display:"flex", justifyContent:"center", alignItems:"center", color: Color.whiteColorWithOpacity, fontSize: 12}}>Valeur</Typography>
-                         <Typography style={{height: "inherit", display:"flex", justifyContent:"center", alignItems:"center", color: Color.whiteColorWithOpacity, fontSize: 12}}>Action</Typography>
-                           
-                      </div>
-                      <div style={{ 
-                       
-                       height: 50,
-                       
-                       display:"flex",
-                       alignItems: "stretch",
-                       justifyContent:"space-between",
-                       marginRight: 10,
-                       marginLeft: 10,
-                      }} >
-                        <Typography style={{ display:"flex", justifyContent:"center", alignItems:"center", color: Color.whiteColor}}>{selectedLineView()}</Typography>
-                         <Typography style={{ display:"flex", justifyContent:"center", alignItems:"center", color: Color.whiteColor}}>...</Typography>
-                         <IconButton  aria-label="delete" onClick={deleteLine} >
-                           <DeleteIcon style={{color: Color.whiteColor}} />
-                         </IconButton>
-                           
-                      </div> 
-                     
+                       {currentPropertiesView()}
                     </Paper>  
 
                        <div style={{

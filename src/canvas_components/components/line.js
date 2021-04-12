@@ -64,6 +64,9 @@ export class Line{
     setIndexEnd(idxEnd){
         this.index_end = idxEnd
     }
+    setValue(val){
+        this.value = val
+    }
     draw(ctx){
         this.ctx = ctx;
 
