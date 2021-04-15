@@ -28,6 +28,7 @@ import MuiDialogContent from '@material-ui/core/DialogContent';
 import MuiDialogActions from '@material-ui/core/DialogActions';
 import CloseIcon from '@material-ui/icons/Close';
 import { withStyles } from '@material-ui/core/styles';
+import Alert from '@material-ui/lab/Alert'
 
 const CIRCLE_RADIUS = CircleRadius;
 const infinie = '∞';
@@ -48,6 +49,8 @@ function App(){
   const [openDialog, setOpenDialog] = useState(false);
   const [currentLineDraw, setCurrentLineDraw] = useState();
   const [currentLineDrawValue, setCurrentLineDrawValue] = useState();
+  const [isError, setIsError] = useState(false)
+  const [lineCurveIndex, setLineCurveIndex] =useState();
   
   let paintDraggableLine = false
   let currentLineCoordinate = []
@@ -126,10 +129,14 @@ function App(){
         }
     })
     if(currentLineCoordinate[0][0] == currentLineCoordinate[1][0] && currentLineCoordinate[0][1] == currentLineCoordinate[1][1]) return;
-    lines.forEach((line) => {
-      if(line.getIndexBegin() == currentLineCoordinate[0][3] && line.getIndexEnd() == currentLineCoordinate[1][3]) ok = false
+ lines.forEach((line) => {
+      if(line.getIndexBegin() == currentLineCoordinate[0][3] && line.getIndexEnd() == currentLineCoordinate[1][3]) {
+        ok = false;
+         return;
+        }
+     
     })
-  
+    
     resetColor()
     if(ok){
       setOpenDialog(true)
@@ -147,8 +154,7 @@ function App(){
     trackerLine = false
     trackerEndLineDraw = false
     newLine = null
-  
-  
+    
   }
 
   let paintDraggableSummit = false
@@ -350,8 +356,12 @@ function App(){
 
   }
   const deleteLine = (li) => {
+    resetColor()
     let newLines = []
     lines.forEach((line) => {
+      if(line.getIndexBegin() == li.getIndexEnd() && line.getIndexEnd() == li.getIndexBegin()){
+        line.setCurveIndex(null)
+      }
       if(line.getIndexBegin() == li.getIndexBegin() && line.getIndexEnd() == li.getIndexEnd()) {
           return
       }
@@ -421,7 +431,9 @@ function App(){
           initialMatrice[row][col] = value;
       })
       
-     Demouchron(currentAlgoType, d, initialMatrice, currentAlgorithm, addDetail, getResult).then((resp) => { changeGraphColor(resp); d = []; initialMatrice = [] }) 
+     Demouchron(currentAlgoType, d, initialMatrice, currentAlgorithm, addDetail, getResult)
+     .then((resp) => { changeGraphColor(resp); d = []; initialMatrice = [] })
+     .catch((err) => {setIsError(true); setTimeout(() => setIsError(false), 2000)} )
 
      
   }
@@ -823,8 +835,17 @@ function App(){
   };
   const handleAddLine = () => {
     if(!isNaN(parseInt(currentLineDrawValue))){
-      setLines([ ...lines, new Line (currentLineDraw[0][0], currentLineDraw[0][1], currentLineDraw[1][0], currentLineDraw[1][1], parseInt(currentLineDrawValue),  currentLineDraw[0][3], currentLineDraw[1][3], CIRCLE_RADIUS)])
-    } 
+      let isCurvedLine =false
+      lines.forEach((line) => {
+        if(line.getIndexBegin() == currentLineDraw[1][3] && line.getIndexEnd() == currentLineDraw[0][3]){
+          line.setCurveIndex(0)
+          isCurvedLine = true
+        }  
+      })
+      if(isCurvedLine) setLines([ ...lines, new Line (currentLineDraw[0][0], currentLineDraw[0][1], currentLineDraw[1][0], currentLineDraw[1][1], parseInt(currentLineDrawValue),  currentLineDraw[0][3], currentLineDraw[1][3], CIRCLE_RADIUS, null, 1)])
+      else setLines([ ...lines, new Line (currentLineDraw[0][0], currentLineDraw[0][1], currentLineDraw[1][0], currentLineDraw[1][1], parseInt(currentLineDrawValue),  currentLineDraw[0][3], currentLineDraw[1][3], CIRCLE_RADIUS)])
+   
+   } 
   else setLineCoordinate([])
   setOpenDialog(false);
   setCurrentLineDrawValue()
@@ -844,15 +865,27 @@ function App(){
 setCurrentLineDrawValue(event.target.value)
                         
   }
+
+  const ErrorAlertView = () => {
+    if(isError){
+      return(
+        <>
+             <div style={{width: "30%", position: "fixed", zIndex: 16, top: 10, left: canvasWidth/2}}>
+                  <Alert severity="error" onClose={() => {setIsError(false)}}>Erreur — <strong>Veuiller verifier votre graph, SVP!</strong></Alert>
+              </div>
+        </>
+      )
+    }
+  }
     return (
        
          <div style = {{
                   backgroundImage: `url(${backgroundImage})`,
                   backgroundSize: "cover",
                   width:"100%",
-                  height: "101%"
+                  height: "100%"
                 }}>
-
+            {ErrorAlertView()}
             <Dialog  onClose={handleClose} aria-labelledby="customized-dialog-title" open={openDialog}>
                 <DialogTitle style={{backgroundColor: Color.backgroundColor}} id="customized-dialog-title" onClose={handleClose}>
                    Valeur de l'arc
@@ -866,6 +899,13 @@ setCurrentLineDrawValue(event.target.value)
                          fullWidth
                         autoFocus
                          value={currentLineDrawValue}
+                         onKeyPress={(event) => {
+                          
+                          if (event.key === 'Enter') {
+                            handleAddLine(event)
+                            event.preventDefault();
+                          }
+                        }}
                          onSubmit = {handleAddLine}
                          onChange = {changeLineDrawValue}
                          label="..."
