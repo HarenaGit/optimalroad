@@ -29,6 +29,7 @@ import MuiDialogActions from '@material-ui/core/DialogActions';
 import CloseIcon from '@material-ui/icons/Close';
 import { withStyles } from '@material-ui/core/styles';
 import Alert from '@material-ui/lab/Alert'
+import Documentation from './components/documentation'
 
 const CIRCLE_RADIUS = CircleRadius;
 const infinie = '∞';
@@ -51,6 +52,7 @@ function App(){
   const [currentLineDrawValue, setCurrentLineDrawValue] = useState();
   const [isError, setIsError] = useState(false)
   const [lineCurveIndex, setLineCurveIndex] =useState();
+  const [openDocumentation, setOpenDocumentation] = useState(true);
   
   let paintDraggableLine = false
   let currentLineCoordinate = []
@@ -888,6 +890,7 @@ setCurrentLineDrawValue(event.target.value)
                   width:"100%",
                   height: "100%"
                 }}>
+            <Documentation open={openDocumentation} close = {() => {setOpenDocumentation(false)}} />
             {ErrorAlertView()}
             <Dialog  onClose={handleClose} aria-labelledby="customized-dialog-title" open={openDialog}>
                 <DialogTitle style={{backgroundColor: Color.backgroundColor}} id="customized-dialog-title" onClose={handleClose}>
@@ -978,7 +981,19 @@ setCurrentLineDrawValue(event.target.value)
                             </Button> 
                             
                        </div>
-
+                      
+                       <div style={{
+                         display: "flex",
+                         alignItems: "stretch",
+                         justifyContent: "flex-end",
+                         marginTop: 20,
+                         marginLeft: 10,
+                         marginRight: 10
+                        
+                       }} >
+                         <Button style={{color: Color.whiteColorWithOpacity}} onClick={() => setOpenDocumentation(true)}>DOCUMENTATION</Button>
+                       </div>
+                       <Divider style={{marginLeft: 10, marginRight:10, backgroundColor: Color.whiteColorWithOpacity}} />
                        <div style={{
                          display: "flex",
                          alignItems: "stretch",
@@ -1007,8 +1022,10 @@ setCurrentLineDrawValue(event.target.value)
                          </Typography>
                          
                        </div> 
-                       <Divider style={{marginLeft: 10, marginRight:10, backgroundColor: Color.whiteColorWithOpacity, marginTop:20}} />
-                       {currentPropertiesView()}
+                       <Divider style={{marginLeft: 10, marginRight:10, backgroundColor: Color.whiteColorWithOpacity, marginTop:10}} />
+                      
+                        {currentPropertiesView()}
+                    
                     </Paper>  
 
                        <div style={{

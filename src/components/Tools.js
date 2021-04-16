@@ -60,7 +60,7 @@ export default function Tools({summitFunction, lineFunction, selectFunction, cle
                    <Circle />
                </IconButton>
                <IconButton
-               title ='Line'
+               title ='Ligne'
                aria-label = "node"
                onClick = {() => {
                 setActiveSummit(inactiveColor)
