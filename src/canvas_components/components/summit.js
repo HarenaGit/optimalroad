@@ -58,6 +58,14 @@ export class Summit {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle'
         ctx.fillText(this.label, this.x, this.y + 350); 
+
+        ctx.beginPath();
+        this.setShadow(ctx, "rgba(0,0,0,0.7)", 0,0,0)
+        ctx.font = "180px Arial";
+        ctx.fillStyle =Color.blackColor;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle'
+        ctx.fillText(this.index, this.x, this.y); 
            
       ctx.restore()
       

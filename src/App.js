@@ -299,7 +299,10 @@ function App(){
           setSelectedLine()
         }
     })
-    if(isSummitSelected) setSummits([...summits])
+    if(isSummitSelected){ 
+      setSummits([...summits])
+      return
+    }
     let isLineSelected = false
     lines.forEach((line) => {
         const rect = canvasRef.current.getBoundingClientRect();

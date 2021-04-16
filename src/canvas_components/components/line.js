@@ -1,4 +1,4 @@
-import {circle2LineIntersectionCoordinate, lineEquation} from '../algorithms/circle2LineIntersection'
+import {circle2LineIntersectionCoordinate, lineEquation, distanceLine2Point, perpendicularLineEquation, lineIntersection, isPointInSegment, dist} from '../algorithms/circle2LineIntersection'
 import {Color} from '../utilities/color'
 import {quadraticEquation} from '../algorithms/quadraticEquation'
 export class Line{
@@ -16,7 +16,7 @@ export class Line{
         this.valueColor = Color.activeColor
         this.ctx = null;
         this.circle_radius = circle_radius;
-        this.size = 25
+        this.size = 30
         this.curveIndex = curveIndex
         this.x_begin_drawed = null
         this.y_begin_drawed = null
@@ -26,33 +26,22 @@ export class Line{
         this.fontStyle = 'Verdana'
     }
 
+   
     lineClick(xmouse, ymouse){
         xmouse = xmouse / this.SCALE-this.OFFSET;
         ymouse = ymouse / this.SCALE-this.OFFSET;
-        if(this.x_begin_drawed == this.x_end_drawed){
-            console.log("test")
+    
+        let firstLine = lineEquation(this.x_begin_drawed, this.y_begin_drawed, this.x_end_drawed, this.y_end_drawed)
+        let distance = distanceLine2Point(xmouse, ymouse, firstLine[0], firstLine[1])
+        if(distance <= this.size*2){
+           let secondLine = perpendicularLineEquation(xmouse, ymouse, firstLine[0])
+           let intersectPoint = lineIntersection(firstLine[0], firstLine[1], secondLine[0], secondLine[1])
+        
+           if(isPointInSegment(this.x_begin_drawed, this.y_begin_drawed, this.x_end_drawed, this.y_end_drawed, intersectPoint[0], intersectPoint[1])) return true;
+           return false;
+         
         }
-        if(this.x_begin_drawed < this.x_end_drawed){
-            let isXmouseOk = xmouse > this.x_begin_drawed && xmouse < this.x_end_drawed 
-            if(!isXmouseOk) return false;
-           }
-       
-        else{
-            let isXmouseOk = xmouse < this.x_begin_drawed && xmouse > this.x_end_drawed 
-            if(!isXmouseOk) return false;
-           
-        }
-        let coeficient = lineEquation(this.x_begin_drawed, this.y_begin_drawed, this.x_end_drawed, this.y_end_drawed)
-        let a = coeficient[0]
-        let b = coeficient[1]
-        let ymouseResult = a*xmouse + b
-       
-        const distance = Math.sqrt(
-             ((ymouse - ymouseResult)*(ymouse - ymouseResult))
-        );
-       
-        if(distance <= this.size) return true;
-        else return false;
+        else return false
     }
     setXBegin(x){
         this.x_begin = x/this.SCALE - this.OFFSET
@@ -173,7 +162,6 @@ export class Line{
         ctx.moveTo(x_arrow_begin, y_arrow_begin);
         ctx.lineTo(x_arrow, y_arrow);
         ctx.strokeStyle  = this.color ?? Color.defaultColor
-        ctx.lineWidth = this.size
         ctx.stroke()
 
         ctx.translate(p1.x, p1.y);
